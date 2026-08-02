@@ -5,10 +5,11 @@ import { AuthPage } from './pages/AuthPage'
 import { PairPage } from './pages/PairPage'
 import { MyListPage } from './pages/MyListPage'
 import { PartnerListPage } from './pages/PartnerListPage'
+import { ArchivePage } from './pages/ArchivePage'
 import { SettingsPage } from './pages/SettingsPage'
-import { HeartIcon, UsersIcon, SettingsIcon } from './components/Icons'
+import { HeartIcon, UsersIcon, ArchiveIcon, SettingsIcon } from './components/Icons'
 
-type Tab = 'mine' | 'partner' | 'settings'
+type Tab = 'mine' | 'partner' | 'archive' | 'settings'
 
 function App() {
   const { session, loading: sessionLoading } = useSession()
@@ -39,6 +40,7 @@ function App() {
     <div className="app-shell">
       {tab === 'mine' && <MyListPage profile={profile} />}
       {tab === 'partner' && <PartnerListPage profile={profile} />}
+      {tab === 'archive' && <ArchivePage profile={profile} />}
       {tab === 'settings' && <SettingsPage profile={profile} onSignOut={handleSignOut} />}
 
       <nav className="tab-bar">
@@ -57,6 +59,14 @@ function App() {
         >
           <UsersIcon />
           <span>Theirs</span>
+        </button>
+        <button
+          className={tab === 'archive' ? 'active' : ''}
+          onClick={() => setTab('archive')}
+          aria-label="Archive"
+        >
+          <ArchiveIcon />
+          <span>Archive</span>
         </button>
         <button
           className={tab === 'settings' ? 'active' : ''}

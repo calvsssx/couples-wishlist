@@ -127,7 +127,7 @@ p { margin: 0; line-height: 1.5; }
 .tab-bar button {
   background: transparent;
   color: var(--text-muted);
-  padding: 8px 16px;
+  padding: 8px 10px;
   font-size: 13px;
   display: flex;
   flex-direction: column;

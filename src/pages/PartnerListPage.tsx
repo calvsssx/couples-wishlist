@@ -24,19 +24,18 @@ export function PartnerListPage({ profile }: Props) {
       })
   }, [partnerId])
 
-  async function toggleBought(itemId: string, currentPurchaseId: string | null) {
-    if (currentPurchaseId) {
-      await supabase.from('purchases').delete().eq('id', currentPurchaseId)
-    } else {
-      await supabase.from('purchases').insert({
-        item_id: itemId,
-        bought_by: profile.id,
-      })
-    }
+  async function markBought(itemId: string) {
+    await supabase.from('purchases').insert({
+      item_id: itemId,
+      bought_by: profile.id,
+    })
     await reload()
   }
 
-  const boughtCount = items.filter((i) => i.purchase).length
+  // Items you've already bought move out of this list and into the Archive tab,
+  // so this view only shows what's still left to get.
+  const toBuy = items.filter((i) => !i.purchase)
+  const boughtCount = items.length - toBuy.length
 
   return (
     <div>
@@ -44,12 +43,12 @@ export function PartnerListPage({ profile }: Props) {
         <h1>{partnerName}'s list</h1>
       </div>
       <p style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 16 }}>
-        Tap the circle to secretly mark something as already bought.
+        Tap the circle to secretly mark something as already bought — it'll move to your Archive tab.
       </p>
 
       <div className="stats">
-        <span className="stat-pill">{items.length} items</span>
-        <span className="stat-pill">{boughtCount} secretly bought</span>
+        <span className="stat-pill">{toBuy.length} items</span>
+        {boughtCount > 0 && <span className="stat-pill">{boughtCount} archived</span>}
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -60,32 +59,27 @@ export function PartnerListPage({ profile }: Props) {
         <div className="empty">{partnerName} hasn't added anything yet.</div>
       )}
 
-      {items.map((item) => {
-        const bought = !!item.purchase
-        return (
-          <div key={item.id} className={'card' + (bought ? ' dimmed' : '')}>
-            <button
-              className={'check-button' + (bought ? ' checked' : '')}
-              onClick={() => toggleBought(item.id, item.purchase?.id || null)}
-              aria-label={bought ? 'Unmark bought' : 'Mark as bought'}
-            >
-              {bought && <CheckIcon />}
-            </button>
-            <div className="item-info">
-              <div className="item-name">{item.name}</div>
-              {item.price != null && (
-                <div className="item-meta">
-                  ₱{item.price.toLocaleString()}
-                  {bought && ` · bought (hidden from ${partnerName})`}
-                </div>
-              )}
-              {item.price == null && bought && (
-                <div className="item-meta">bought (hidden from {partnerName})</div>
-              )}
-            </div>
+      {!loading && items.length > 0 && toBuy.length === 0 && (
+        <div className="empty">You've got everything on this list — check your Archive tab.</div>
+      )}
+
+      {toBuy.map((item) => (
+        <div key={item.id} className="card">
+          <button
+            className="check-button"
+            onClick={() => markBought(item.id)}
+            aria-label="Mark as bought"
+          >
+            <CheckIcon />
+          </button>
+          <div className="item-info">
+            <div className="item-name">{item.name}</div>
+            {item.price != null && (
+              <div className="item-meta">₱{item.price.toLocaleString()}</div>
+            )}
           </div>
-        )
-      })}
+        </div>
+      ))}
 
       {items.length > 0 && (
         <div className="lock-hint">
